@@ -14,6 +14,11 @@ public class Main extends Application {
         primaryStage.setTitle("FFMPEG GUI Converter");
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
+
+        primaryStage.sizeToScene();
+        primaryStage.show();
+        primaryStage.setMinWidth(primaryStage.getWidth());
+        primaryStage.setMinHeight(primaryStage.getHeight());
     }
 
 
