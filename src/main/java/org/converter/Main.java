@@ -1,4 +1,4 @@
-package converter;
+package org.converter;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -10,7 +10,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        Parent root = FXMLLoader.load(getClass().getResource("scene/converter.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("/scenes/converter.fxml"));
         primaryStage.setTitle("FFMPEG GUI Converter");
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
@@ -20,7 +20,6 @@ public class Main extends Application {
         primaryStage.setMinWidth(primaryStage.getWidth());
         primaryStage.setMinHeight(primaryStage.getHeight());
     }
-
 
     public static void main(String[] args) {
         launch(args);

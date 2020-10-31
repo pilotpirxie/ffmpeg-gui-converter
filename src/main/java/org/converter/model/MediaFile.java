@@ -1,4 +1,4 @@
-package converter.model;
+package org.converter.model;
 
 public class MediaFile {
     private String title;
