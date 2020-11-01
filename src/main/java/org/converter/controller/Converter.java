@@ -18,6 +18,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.security.cert.Extension;
 import java.util.List;
 
 public class Converter {
@@ -65,6 +66,8 @@ public class Converter {
     public void onImportFiles(ActionEvent e) throws IOException {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Open File");
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Video", "*.mp4", "*.mov", "*.avi", "*.webm", "*.mkv", "*.wmv", "*.flv");
+        chooser.getExtensionFilters().add(extFilter);
         List<File> files = chooser.showOpenMultipleDialog(new Stage());
 
         for (File file: files) {
