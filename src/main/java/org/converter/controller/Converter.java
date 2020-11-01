@@ -1,5 +1,9 @@
 package org.converter.controller;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import netscape.javascript.JSObject;
 import org.converter.model.MediaFile;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -28,7 +32,13 @@ public class Converter {
     private TableColumn<Object, Object> durationColumn;
 
     @FXML
-    private TableColumn<Object, Object> typeColumn;
+    private TableColumn<Object, Object> fileSizeColumn;
+
+    @FXML
+    private TableColumn<Object, Object> fileFormatColumn;
+
+    @FXML
+    private TableColumn<Object, Object> videoCodecColumn;
 
     @FXML
     private TableColumn<Object, Object> informationColumn;
@@ -45,11 +55,10 @@ public class Converter {
     private void initialize() {
         titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
         durationColumn.setCellValueFactory(new PropertyValueFactory<>("duration"));
-        typeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
+        fileSizeColumn.setCellValueFactory(new PropertyValueFactory<>("fileSize"));
+        fileFormatColumn.setCellValueFactory(new PropertyValueFactory<>("fileFormat"));
+        videoCodecColumn.setCellValueFactory(new PropertyValueFactory<>("videoCodec"));
         informationColumn.setCellValueFactory(new PropertyValueFactory<>("information"));
-
-        MediaFile mf = new MediaFile("A", "B", "C", "D");
-        videoTable.getItems().add(mf);
     }
 
     @FXML
@@ -57,26 +66,49 @@ public class Converter {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Open File");
         List<File> files = chooser.showOpenMultipleDialog(new Stage());
-        for (File file: files) {
 
-            String[] cmd={"C:\\ffmpeg\\ffprobe.exe", "-v", "quiet", "-print_format", "json", "-show_format", file.getAbsolutePath()};
+        for (File file: files) {
+            String[] cmd={"C:\\ffmpeg\\ffprobe.exe", "-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", file.getAbsolutePath()};
 
             Runtime rt = Runtime.getRuntime();
             Process proc = rt.exec(cmd);
 
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-            BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
 
-            String s = null;
-            while ((s = stdInput.readLine()) != null) {
-                System.out.println(s);
+            String jsonData = "";
+            for (String line = ""; (line = stdInput.readLine()) != null; jsonData+=line);
+
+            JsonObject jsonObject = new JsonParser().parse(jsonData).getAsJsonObject();
+            JsonObject formatData = jsonObject.get("format").getAsJsonObject();
+            JsonArray streamsData = jsonObject.get("streams").getAsJsonArray();
+
+            String duration = formatData.get("duration").getAsString();
+            String fileFormat = formatData.get("format_long_name").getAsString();
+            String size = formatData.get("size").getAsString();
+            String bitrate = formatData.get("bit_rate").getAsString();
+
+            JsonObject videoStream = null;
+            for (int i = 0; i < streamsData.size(); i++) {
+                JsonObject stream = streamsData.get(i).getAsJsonObject();
+
+                if (stream.get("codec_type").getAsString().equals("video")) {
+                    videoStream = streamsData.get(i).getAsJsonObject();
+                    break;
+                }
             }
 
-            while ((s = stdError.readLine()) != null) {
-                System.out.println(s);
-            }
+            if (videoStream == null) return;
 
-            MediaFile mf = new MediaFile(file.getName(), "B", "C", "D");
+            String videoCodec = videoStream.get("codec_long_name").getAsString();
+            String width = videoStream.get("width").getAsString();
+            String height = videoStream.get("height").getAsString();
+
+            String formattedBitrate = Math.round(Integer.parseInt(bitrate)/1024) + " kbps";
+            String formattedDuration = duration + "s";
+            String formattedFileSize = Math.round(Integer.parseInt(size)/(1024*1024)) + " MB";
+            String formattedInfo = String.format("%sx%s, %s", width, height, formattedBitrate);
+
+            MediaFile mf = new MediaFile(file.getName(), formattedDuration, formattedFileSize, fileFormat, videoCodec, formattedInfo, file.getAbsolutePath());
             videoTable.getItems().add(mf);
         }
     }

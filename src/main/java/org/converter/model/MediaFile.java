@@ -3,14 +3,20 @@ package org.converter.model;
 public class MediaFile {
     private String title;
     private String duration;
-    private String type;
+    private String fileSize;
+    private String fileFormat;
+    private String videoCodec;
     private String information;
+    private String filepath;
 
-    public MediaFile(String title, String duration, String type, String information) {
+    public MediaFile(String title, String duration, String fileSize, String fileFormat, String videoCodec, String information, String filepath) {
         this.title = title;
         this.duration = duration;
-        this.type = type;
+        this.fileSize = fileSize;
+        this.fileFormat = fileFormat;
+        this.videoCodec = videoCodec;
         this.information = information;
+        this.filepath = filepath;
     }
 
     public String getTitle() {
@@ -21,11 +27,23 @@ public class MediaFile {
         return duration;
     }
 
-    public String getType() {
-        return type;
+    public String getFileSize() {
+        return fileSize;
+    }
+
+    public String getFileFormat() {
+        return fileFormat;
+    }
+
+    public String getVideoCodec() {
+        return videoCodec;
     }
 
     public String getInformation() {
         return information;
+    }
+
+    public String getFilepath() {
+        return filepath;
     }
 }

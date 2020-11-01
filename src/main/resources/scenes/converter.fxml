@@ -20,7 +20,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="480.0" prefWidth="854.0" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="org.converter.controller.Converter">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="480.0" prefWidth="854.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.converter.controller.Converter">
    <top>
       <MenuBar BorderPane.alignment="CENTER">
         <menus>
@@ -40,8 +40,10 @@
                   <TableView fx:id="videoTable" prefHeight="200.0" prefWidth="200.0" tableMenuButtonVisible="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                     <columns>
                       <TableColumn fx:id="titleColumn" prefWidth="136.0" text="Title" />
+                        <TableColumn fx:id="fileSizeColumn" minWidth="3.0" text="File Size" />
                       <TableColumn fx:id="durationColumn" minWidth="3.0" text="Duration" />
-                        <TableColumn fx:id="typeColumn" minWidth="0.0" prefWidth="109.0" text="Type" />
+                        <TableColumn fx:id="fileFormatColumn" minWidth="0.0" prefWidth="109.0" text="File Format" />
+                        <TableColumn fx:id="videoCodecColumn" minWidth="0.0" prefWidth="109.0" text="Video Codec" />
                         <TableColumn fx:id="informationColumn" prefWidth="236.0" text="Information" />
                     </columns>
                   </TableView>
