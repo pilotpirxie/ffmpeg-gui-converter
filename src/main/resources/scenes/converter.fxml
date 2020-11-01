@@ -79,7 +79,7 @@
                                                 <Label text="Additional arguments" GridPane.rowIndex="2" />
                                                 <TextField promptText="Optional" GridPane.columnSpan="2" GridPane.rowIndex="3" />
                                                 <Label text="Preset" GridPane.rowIndex="4" />
-                                                <ComboBox maxWidth="1.7976931348623157E308" prefWidth="150.0" promptText="Medium Quality" GridPane.columnSpan="2" GridPane.rowIndex="5" />
+                                                <ComboBox fx:id="qualityComboBox" maxWidth="1.7976931348623157E308" prefWidth="150.0" promptText="Medium Quality" GridPane.columnSpan="2" GridPane.rowIndex="5" />
                                              </children>
                                           </GridPane>
                                        </children>
@@ -131,11 +131,11 @@
                                                 <Label text="Frame rate" />
                                                 <Label text="Keyframe every" GridPane.rowIndex="2" />
                                                 <Label text="Video Codec" GridPane.rowIndex="4" />
-                                                <ComboBox maxWidth="1.7976931348623157E308" prefWidth="150.0" promptText="MP4/HEVC" GridPane.columnSpan="2" GridPane.rowIndex="5" />
+                                                <ComboBox fx:id="videoCodecComboBox" maxWidth="1.7976931348623157E308" prefWidth="150.0" promptText="MP4/HEVC" GridPane.columnSpan="2" GridPane.rowIndex="5" />
                                                 <Label text="Bitrate Video" GridPane.rowIndex="6" />
-                                                <ComboBox maxWidth="1.7976931348623157E308" prefWidth="150.0" promptText="15000" GridPane.columnSpan="2" GridPane.rowIndex="7" />
-                                                <ComboBox maxWidth="1.7976931348623157E308" prefWidth="150.0" promptText="30" GridPane.columnSpan="2" GridPane.rowIndex="1" />
-                                                <ComboBox maxWidth="1.7976931348623157E308" prefWidth="150.0" promptText="5s" GridPane.columnSpan="2" GridPane.rowIndex="3" />
+                                                <ComboBox fx:id="bitrateVideoComboBox" maxWidth="1.7976931348623157E308" prefWidth="150.0" promptText="15000" GridPane.columnSpan="2" GridPane.rowIndex="7" />
+                                                <ComboBox fx:id="framerateComboBox" maxWidth="1.7976931348623157E308" prefWidth="150.0" promptText="30" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+                                                <ComboBox fx:id="keyframeComboBox" maxWidth="1.7976931348623157E308" prefWidth="150.0" promptText="5s" GridPane.columnSpan="2" GridPane.rowIndex="3" />
                                              </children>
                                           </GridPane>
                                           <GridPane>
@@ -175,8 +175,8 @@
                                              <children>
                                                 <Label text="Audio Codec" />
                                                 <Label text="Bitrate Audio" GridPane.rowIndex="2" />
-                                                <ComboBox maxWidth="1.7976931348623157E308" prefWidth="150.0" promptText="15000" GridPane.columnSpan="2" GridPane.rowIndex="3" />
-                                                <ComboBox maxWidth="1.7976931348623157E308" prefWidth="150.0" promptText="AAC" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+                                                <ComboBox fx:id="bitrateAudioComboBox" maxWidth="1.7976931348623157E308" prefWidth="150.0" promptText="15000" GridPane.columnSpan="2" GridPane.rowIndex="3" />
+                                                <ComboBox fx:id="audioCodecComboBox" maxWidth="1.7976931348623157E308" prefWidth="150.0" promptText="AAC" GridPane.columnSpan="2" GridPane.rowIndex="1" />
                                              </children>
                                           </GridPane>
                                        </children>

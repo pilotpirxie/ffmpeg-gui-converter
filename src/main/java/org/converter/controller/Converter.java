@@ -3,6 +3,9 @@ package org.converter.controller;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.control.ComboBox;
 import netscape.javascript.JSObject;
 import org.converter.model.MediaFile;
 import javafx.event.ActionEvent;
@@ -50,6 +53,27 @@ public class Converter {
     @FXML
     private MenuItem convertMenuItem;
 
+    @FXML
+    private ComboBox qualityComboBox;
+
+    @FXML
+    private ComboBox framerateComboBox;
+
+    @FXML
+    private ComboBox keyframeComboBox;
+
+    @FXML
+    private ComboBox videoCodecComboBox;
+
+    @FXML
+    private ComboBox bitrateVideoComboBox;
+
+    @FXML
+    private ComboBox audioCodecComboBox;
+
+    @FXML
+    private ComboBox bitrateAudioComboBox;
+
     public Converter() { }
 
     @FXML
@@ -60,6 +84,36 @@ public class Converter {
         fileFormatColumn.setCellValueFactory(new PropertyValueFactory<>("fileFormat"));
         videoCodecColumn.setCellValueFactory(new PropertyValueFactory<>("videoCodec"));
         informationColumn.setCellValueFactory(new PropertyValueFactory<>("information"));
+
+        ObservableList<String> qualities = FXCollections.observableArrayList("ultrafast", "fast", "medium", "slow", "veryslow");
+        qualityComboBox.setItems(qualities);
+        qualityComboBox.getSelectionModel().select(1);
+
+        ObservableList<String> framerates = FXCollections.observableArrayList("1", "5", "24", "25", "29.97", "30", "48", "50", "59.94", "60", "120", "144");
+        framerateComboBox.setItems(framerates);
+        framerateComboBox.getSelectionModel().select(5);
+
+        ObservableList<String> keyframes = FXCollections.observableArrayList("5", "30", "60", "120");
+        keyframeComboBox.setItems(keyframes);
+        keyframeComboBox.getSelectionModel().select(0);
+
+        ObservableList<String> videoCodecs = FXCollections.observableArrayList("h264");
+        videoCodecComboBox.setItems(videoCodecs);
+        videoCodecComboBox.getSelectionModel().select(0);
+
+        ObservableList<String> videoBitrates = FXCollections.observableArrayList("512k", "1M", "2M", "3M", "5M", "10M", "15M", "30M");
+        bitrateVideoComboBox.setItems(videoBitrates);
+        bitrateVideoComboBox.getSelectionModel().select(2);
+
+        ObservableList<String> audioCodecs = FXCollections.observableArrayList("aac", "ac3", "flac");
+        audioCodecComboBox.setItems(audioCodecs);
+        audioCodecComboBox.getSelectionModel().select(0);
+
+        ObservableList<String> audioBitrates = FXCollections.observableArrayList("32k", "128k", "192k", "256k");
+        bitrateAudioComboBox.setItems(audioBitrates);
+        bitrateAudioComboBox.getSelectionModel().select(1);
+
+
     }
 
     @FXML
