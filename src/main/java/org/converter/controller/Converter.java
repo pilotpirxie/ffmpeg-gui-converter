@@ -5,14 +5,12 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.ComboBox;
+import javafx.scene.control.*;
+import javafx.stage.DirectoryChooser;
 import netscape.javascript.JSObject;
 import org.converter.model.MediaFile;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -48,12 +46,6 @@ public class Converter {
     private TableColumn<Object, Object> informationColumn;
 
     @FXML
-    private MenuItem importMenuItem;
-
-    @FXML
-    private MenuItem convertMenuItem;
-
-    @FXML
     private ComboBox qualityComboBox;
 
     @FXML
@@ -73,6 +65,18 @@ public class Converter {
 
     @FXML
     private ComboBox bitrateAudioComboBox;
+
+    @FXML
+    private TextField resolutionWidthTextField;
+
+    @FXML
+    private TextField resolutionHeightTextField;
+
+    @FXML
+    private TextField outputDirectoryTextField;
+
+    @FXML
+    private CheckBox keepOriginalResolutionCheckBox;
 
     public Converter() { }
 
@@ -113,13 +117,26 @@ public class Converter {
         bitrateAudioComboBox.setItems(audioBitrates);
         bitrateAudioComboBox.getSelectionModel().select(1);
 
+        resolutionWidthTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue.matches("\\d*")) return;
+            resolutionWidthTextField.setText(newValue.replaceAll("[^\\d]", ""));
+        });
 
+        resolutionHeightTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue.matches("\\d*")) return;
+            resolutionHeightTextField.setText(newValue.replaceAll("[^\\d]", ""));
+        });
+
+        keepOriginalResolutionCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            resolutionWidthTextField.setDisable(newValue);
+            resolutionHeightTextField.setDisable(newValue);
+        });
     }
 
     @FXML
     public void onImportFiles(ActionEvent e) throws IOException {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Open File");
+        chooser.setTitle("Select files");
         FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Video", "*.mp4", "*.mov", "*.avi", "*.webm", "*.mkv", "*.wmv", "*.flv");
         chooser.getExtensionFilters().add(extFilter);
         List<File> files = chooser.showOpenMultipleDialog(new Stage());
@@ -168,5 +185,13 @@ public class Converter {
             MediaFile mf = new MediaFile(file.getName(), formattedDuration, formattedFileSize, fileFormat, videoCodec, formattedInfo, file.getAbsolutePath());
             videoTable.getItems().add(mf);
         }
+    }
+
+    @FXML
+    public void onSelectOutputDirectory(ActionEvent e) {
+        DirectoryChooser chooser = new DirectoryChooser();
+        chooser.setTitle("Select output directory");
+        File selectedDirectory = chooser.showDialog(new Stage());
+        outputDirectoryTextField.setText(selectedDirectory.getAbsolutePath());
     }
 }

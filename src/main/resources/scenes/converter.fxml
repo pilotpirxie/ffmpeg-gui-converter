@@ -26,8 +26,8 @@
         <menus>
           <Menu mnemonicParsing="false" text="File">
                <items>
-                  <MenuItem fx:id="importMenuItem" mnemonicParsing="false" onAction="#onImportFiles" text="Import" />
-                  <MenuItem fx:id="convertMenuItem" mnemonicParsing="false" text="Convert" />
+                  <MenuItem mnemonicParsing="false" onAction="#onImportFiles" text="Import" />
+                  <MenuItem mnemonicParsing="false" text="Convert" />
                </items></Menu>
         </menus>
       </MenuBar>
@@ -74,8 +74,8 @@
                                              </rowConstraints>
                                              <children>
                                                 <Label text="Output directory" />
-                                                <TextField promptText="Output directory" text="C:/" GridPane.columnSpan="2" GridPane.rowIndex="1" />
-                                                <Hyperlink text="Select" textAlignment="RIGHT" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.hgrow="ALWAYS" GridPane.valignment="CENTER" GridPane.vgrow="ALWAYS" />
+                                                <TextField fx:id="outputDirectoryTextField" promptText="Output directory" text="C:/" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+                                                <Hyperlink onAction="#onSelectOutputDirectory" text="Select" textAlignment="RIGHT" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.hgrow="ALWAYS" GridPane.valignment="CENTER" GridPane.vgrow="ALWAYS" />
                                                 <Label text="Additional arguments" GridPane.rowIndex="2" />
                                                 <TextField promptText="Optional" GridPane.columnSpan="2" GridPane.rowIndex="3" />
                                                 <Label text="Preset" GridPane.rowIndex="4" />
@@ -94,7 +94,7 @@
                                  <children>
                                     <VBox layoutX="14.0" layoutY="26.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                        <children>
-                                          <CheckBox mnemonicParsing="false" text="Keep original resolution" />
+                                          <CheckBox fx:id="keepOriginalResolutionCheckBox" mnemonicParsing="false" text="Keep original resolution" />
                                           <GridPane>
                                              <columnConstraints>
                                                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="40.0" />
@@ -107,9 +107,9 @@
                                              </rowConstraints>
                                              <children>
                                                 <Label text="Resolution" GridPane.columnSpan="3" />
-                                                <TextField promptText="Width" GridPane.rowIndex="1" />
+                                                <TextField fx:id="resolutionWidthTextField" promptText="Width" GridPane.rowIndex="1" />
                                                 <Label text="x" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
-                                                <TextField promptText="Height" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                                                <TextField fx:id="resolutionHeightTextField" promptText="Height" GridPane.columnIndex="2" GridPane.rowIndex="1" />
                                              </children>
                                           </GridPane>
                                           <GridPane>
