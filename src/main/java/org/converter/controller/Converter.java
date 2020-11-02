@@ -8,6 +8,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.*;
 import javafx.stage.DirectoryChooser;
 import netscape.javascript.JSObject;
+import org.converter.Command;
 import org.converter.model.MediaFile;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -15,11 +16,14 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import javax.print.attribute.standard.Media;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Paths;
 import java.security.cert.Extension;
+import java.util.Arrays;
 import java.util.List;
 
 public class Converter {
@@ -67,6 +71,9 @@ public class Converter {
     private ComboBox bitrateAudioComboBox;
 
     @FXML
+    private ComboBox containerComboBox;
+
+    @FXML
     private TextField resolutionWidthTextField;
 
     @FXML
@@ -89,6 +96,10 @@ public class Converter {
         videoCodecColumn.setCellValueFactory(new PropertyValueFactory<>("videoCodec"));
         informationColumn.setCellValueFactory(new PropertyValueFactory<>("information"));
 
+        ObservableList<String> containers = FXCollections.observableArrayList("mp4", "mkv", "avi");
+        containerComboBox.setItems(containers);
+        containerComboBox.getSelectionModel().select(0);
+
         ObservableList<String> qualities = FXCollections.observableArrayList("ultrafast", "fast", "medium", "slow", "veryslow");
         qualityComboBox.setItems(qualities);
         qualityComboBox.getSelectionModel().select(1);
@@ -105,11 +116,11 @@ public class Converter {
         videoCodecComboBox.setItems(videoCodecs);
         videoCodecComboBox.getSelectionModel().select(0);
 
-        ObservableList<String> videoBitrates = FXCollections.observableArrayList("512k", "1M", "2M", "3M", "5M", "10M", "15M", "30M");
+        ObservableList<String> videoBitrates = FXCollections.observableArrayList("512k", "1M", "2M", "3M", "5M", "10M");
         bitrateVideoComboBox.setItems(videoBitrates);
         bitrateVideoComboBox.getSelectionModel().select(2);
 
-        ObservableList<String> audioCodecs = FXCollections.observableArrayList("aac", "ac3", "flac");
+        ObservableList<String> audioCodecs = FXCollections.observableArrayList("aac", "ac3");
         audioCodecComboBox.setItems(audioCodecs);
         audioCodecComboBox.getSelectionModel().select(0);
 
@@ -193,5 +204,36 @@ public class Converter {
         chooser.setTitle("Select output directory");
         File selectedDirectory = chooser.showDialog(new Stage());
         outputDirectoryTextField.setText(selectedDirectory.getAbsolutePath());
+    }
+
+    @FXML
+    public void onConvert(ActionEvent e) {
+        if (videoTable.getItems().size() > 0) {
+            for (Object item : videoTable.getItems()) {
+                MediaFile file = (MediaFile)item;
+
+                String width = resolutionWidthTextField.getText();
+                String height = resolutionHeightTextField.getText();
+
+                String filters = "\"scale="+width+":"+height+":force_original_aspect_ratio=decrease,pad="+width+":"+height+":-1:-1:color=black\"";
+                String preset = qualityComboBox.getSelectionModel().getSelectedItem().toString();
+                String keyframes = keyframeComboBox.getSelectionModel().getSelectedItem().toString();
+                String videoBitrate = bitrateVideoComboBox.getSelectionModel().getSelectedItem().toString();
+                String framerate = framerateComboBox.getSelectionModel().getSelectedItem().toString();
+                String audioCodec = audioCodecComboBox.getSelectionModel().getSelectedItem().toString();
+                String audioBitrate = bitrateAudioComboBox.getSelectionModel().getSelectedItem().toString();
+                String container = containerComboBox.getSelectionModel().getSelectedItem().toString();
+
+                String filename = file.getTitle().replaceAll("\\.\\w+", "") + "." + container;
+                String output = Paths.get(outputDirectoryTextField.getText(), filename).toString();
+                String[] cmd={"C:\\ffmpeg\\ffmpeg.exe", "-progress", "-", "-nostats", "-i", file.getFilepath(), !keepOriginalResolutionCheckBox.isSelected() ? "-vf" : "", !keepOriginalResolutionCheckBox.isSelected() ? filters : "", "-c:v", "libx264", "-preset", preset, "-g", keyframes, "-keyint_min", keyframes, "-maxrate", videoBitrate, "-bufsize", videoBitrate, "-r", framerate, "-c:a", audioCodec, "-b:a", audioBitrate, output};
+
+                Command command = new Command(cmd);
+                Thread thread = new Thread(command);
+                thread.run();
+
+                // check if ready
+            }
+        }
     }
 }
