@@ -7,29 +7,20 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.*;
 import javafx.stage.DirectoryChooser;
-import netscape.javascript.JSObject;
 import org.converter.Command;
 import org.converter.model.MediaFile;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-
-import javax.print.attribute.standard.Media;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Paths;
-import java.security.cert.Extension;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class Converter {
 
     @FXML
-    private TableView videoTable;
+    private TableView<MediaFile> videoTable;
 
     @FXML
     private TableColumn<Object, Object> titleColumn;
@@ -50,28 +41,28 @@ public class Converter {
     private TableColumn<Object, Object> informationColumn;
 
     @FXML
-    private ComboBox qualityComboBox;
+    private ComboBox<String> qualityComboBox;
 
     @FXML
-    private ComboBox framerateComboBox;
+    private ComboBox<String> framerateComboBox;
 
     @FXML
-    private ComboBox keyframeComboBox;
+    private ComboBox<String> keyframeComboBox;
 
     @FXML
-    private ComboBox videoCodecComboBox;
+    private ComboBox<String> videoCodecComboBox;
 
     @FXML
-    private ComboBox bitrateVideoComboBox;
+    private ComboBox<String> bitrateVideoComboBox;
 
     @FXML
-    private ComboBox audioCodecComboBox;
+    private ComboBox<String> audioCodecComboBox;
 
     @FXML
-    private ComboBox bitrateAudioComboBox;
+    private ComboBox<String> bitrateAudioComboBox;
 
     @FXML
-    private ComboBox containerComboBox;
+    private ComboBox<String> containerComboBox;
 
     @FXML
     private TextField resolutionWidthTextField;
@@ -83,7 +74,27 @@ public class Converter {
     private TextField outputDirectoryTextField;
 
     @FXML
+    private TextField additionalArgumentsTextField;
+
+    @FXML
+    private TextField ffmpegTextField;
+
+    @FXML
+    private TextField ffprobeTextField;
+
+    @FXML
     private CheckBox keepOriginalResolutionCheckBox;
+
+    @FXML
+    private MenuBar menuBar;
+
+    @FXML
+    private ProgressIndicator inProgress;
+
+    @FXML
+    private Button convertButton;
+
+    private LinkedList<String[]> convertQueue = new LinkedList<>();
 
     public Converter() { }
 
@@ -145,61 +156,73 @@ public class Converter {
     }
 
     @FXML
-    public void onImportFiles(ActionEvent e) throws IOException {
+    public void onImportFiles() {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Select files");
         FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Video", "*.mp4", "*.mov", "*.avi", "*.webm", "*.mkv", "*.wmv", "*.flv");
         chooser.getExtensionFilters().add(extFilter);
         List<File> files = chooser.showOpenMultipleDialog(new Stage());
 
-        for (File file: files) {
-            String[] cmd={"C:\\ffmpeg\\ffprobe.exe", "-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", file.getAbsolutePath()};
+        File ffprobeFile = new File(ffprobeTextField.getText());
+        if (!ffprobeFile.exists() || !ffprobeFile.canExecute() || !ffprobeTextField.getText().contains("ffprobe")) {
+            Alert alert = new Alert(Alert.AlertType.WARNING, "You don't specify FFprobe file.");
+            alert.showAndWait();
+            return;
+        };
 
-            Runtime rt = Runtime.getRuntime();
-            Process proc = rt.exec(cmd);
+        for (File file : files) {
+            String[] cmd = {ffprobeTextField.getText(), "-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", file.getAbsolutePath()};
 
-            BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+            Command command = new Command(cmd);
 
-            String jsonData = "";
-            for (String line = ""; (line = stdInput.readLine()) != null; jsonData+=line);
+            command.setOnSucceeded(t -> {
+                String jsonData = command.getValue();
 
-            JsonObject jsonObject = new JsonParser().parse(jsonData).getAsJsonObject();
-            JsonObject formatData = jsonObject.get("format").getAsJsonObject();
-            JsonArray streamsData = jsonObject.get("streams").getAsJsonArray();
+                MediaFile mf = createMediaFile(file, jsonData);
 
-            String duration = formatData.get("duration").getAsString();
-            String fileFormat = formatData.get("format_long_name").getAsString();
-            String size = formatData.get("size").getAsString();
-            String bitrate = formatData.get("bit_rate").getAsString();
+                if (mf != null) videoTable.getItems().add(mf);
+            });
 
-            JsonObject videoStream = null;
-            for (int i = 0; i < streamsData.size(); i++) {
-                JsonObject stream = streamsData.get(i).getAsJsonObject();
-
-                if (stream.get("codec_type").getAsString().equals("video")) {
-                    videoStream = streamsData.get(i).getAsJsonObject();
-                    break;
-                }
-            }
-
-            if (videoStream == null) return;
-
-            String videoCodec = videoStream.get("codec_long_name").getAsString();
-            String width = videoStream.get("width").getAsString();
-            String height = videoStream.get("height").getAsString();
-
-            String formattedBitrate = Math.round(Integer.parseInt(bitrate)/1024) + " kbps";
-            String formattedDuration = duration + "s";
-            String formattedFileSize = Math.round(Integer.parseInt(size)/(1024*1024)) + " MB";
-            String formattedInfo = String.format("%sx%s, %s", width, height, formattedBitrate);
-
-            MediaFile mf = new MediaFile(file.getName(), formattedDuration, formattedFileSize, fileFormat, videoCodec, formattedInfo, file.getAbsolutePath());
-            videoTable.getItems().add(mf);
+            new Thread(command).start();
         }
     }
 
+    private MediaFile createMediaFile(File file, String jsonData) {
+        JsonObject jsonObject = JsonParser.parseString(jsonData).getAsJsonObject();
+        JsonObject formatData = jsonObject.get("format").getAsJsonObject();
+        JsonArray streamsData = jsonObject.get("streams").getAsJsonArray();
+
+        String duration = formatData.get("duration").getAsString();
+        String fileFormat = formatData.get("format_long_name").getAsString();
+        String size = formatData.get("size").getAsString();
+        String bitrate = formatData.get("bit_rate").getAsString();
+
+        JsonObject videoStream = null;
+        for (int i = 0; i < streamsData.size(); i++) {
+            JsonObject stream = streamsData.get(i).getAsJsonObject();
+
+            if (stream.get("codec_type").getAsString().equals("video")) {
+                videoStream = streamsData.get(i).getAsJsonObject();
+                break;
+            }
+        }
+
+        if (videoStream == null) return null;
+
+        String videoCodec = videoStream.get("codec_long_name").getAsString();
+        String width = videoStream.get("width").getAsString();
+        String height = videoStream.get("height").getAsString();
+
+        String formattedBitrate = Math.round(Integer.parseInt(bitrate) / 1024f) + " kbps";
+        String formattedDuration = duration + "s";
+        String formattedFileSize = Math.round(Integer.parseInt(size) / (1024f * 1024f)) + " MB";
+        String formattedInfo = String.format("%sx%s, %s", width, height, formattedBitrate);
+
+        return new MediaFile(file.getName(), formattedDuration, formattedFileSize, fileFormat, videoCodec, formattedInfo, file.getAbsolutePath());
+    }
+
     @FXML
-    public void onSelectOutputDirectory(ActionEvent e) {
+    public void onSelectOutputDirectory() {
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle("Select output directory");
         File selectedDirectory = chooser.showDialog(new Stage());
@@ -207,33 +230,103 @@ public class Converter {
     }
 
     @FXML
-    public void onConvert(ActionEvent e) {
+    public void onConvert() {
         if (videoTable.getItems().size() > 0) {
-            for (Object item : videoTable.getItems()) {
-                MediaFile file = (MediaFile)item;
+            File ffmpegFile = new File(ffmpegTextField.getText());
+            if (!ffmpegFile.exists() || !ffmpegFile.canExecute() || !ffmpegTextField.getText().contains("ffmpeg")) {
+                Alert alert = new Alert(Alert.AlertType.WARNING, "You don't specify FFmpeg file.");
+                alert.showAndWait();
+                return;
+            };
 
-                String width = resolutionWidthTextField.getText();
-                String height = resolutionHeightTextField.getText();
+            onStartConversion();
 
-                String filters = "\"scale="+width+":"+height+":force_original_aspect_ratio=decrease,pad="+width+":"+height+":-1:-1:color=black\"";
-                String preset = qualityComboBox.getSelectionModel().getSelectedItem().toString();
-                String keyframes = keyframeComboBox.getSelectionModel().getSelectedItem().toString();
-                String videoBitrate = bitrateVideoComboBox.getSelectionModel().getSelectedItem().toString();
-                String framerate = framerateComboBox.getSelectionModel().getSelectedItem().toString();
-                String audioCodec = audioCodecComboBox.getSelectionModel().getSelectedItem().toString();
-                String audioBitrate = bitrateAudioComboBox.getSelectionModel().getSelectedItem().toString();
-                String container = containerComboBox.getSelectionModel().getSelectedItem().toString();
+            for (MediaFile file : videoTable.getItems()) {
+                String[] cmd = getCommandString(file);
 
-                String filename = file.getTitle().replaceAll("\\.\\w+", "") + "." + container;
-                String output = Paths.get(outputDirectoryTextField.getText(), filename).toString();
-                String[] cmd={"C:\\ffmpeg\\ffmpeg.exe", "-progress", "-", "-nostats", "-i", file.getFilepath(), !keepOriginalResolutionCheckBox.isSelected() ? "-vf" : "", !keepOriginalResolutionCheckBox.isSelected() ? filters : "", "-c:v", "libx264", "-preset", preset, "-g", keyframes, "-keyint_min", keyframes, "-maxrate", videoBitrate, "-bufsize", videoBitrate, "-r", framerate, "-c:a", audioCodec, "-b:a", audioBitrate, output};
+                if (cmd == null) return;
 
-                Command command = new Command(cmd);
-                Thread thread = new Thread(command);
-                thread.run();
+                convertQueue.add(cmd);
+            }
 
-                // check if ready
+            if (!convertQueue.isEmpty()) {
+                runConversionProcess(convertQueue.poll());
             }
         }
+    }
+
+    private void runConversionProcess(String[] cmd) {
+        Command command = new Command(cmd);
+        Thread thread = new Thread(command);
+        System.out.println("Running: " + Arrays.toString(cmd));
+        command.setOnSucceeded(t -> {
+            onFinishedConversion();
+        });
+
+        command.setOnFailed(t -> {
+            onFinishedConversion();
+        });
+
+        thread.start();
+    }
+
+    private String[] getCommandString(MediaFile file) {
+        boolean changeResolution = !keepOriginalResolutionCheckBox.isSelected();
+        String width = resolutionWidthTextField.getText();
+        String height = resolutionHeightTextField.getText();
+        if (changeResolution && (!width.equals("") || !height.equals(""))) return null;
+
+        String filters = "\"scale=" + width + ":" + height + "\"";
+        String preset = qualityComboBox.getSelectionModel().getSelectedItem();
+        String keyframes = keyframeComboBox.getSelectionModel().getSelectedItem();
+        String videoBitrate = bitrateVideoComboBox.getSelectionModel().getSelectedItem();
+        String framerate = framerateComboBox.getSelectionModel().getSelectedItem();
+        String audioCodec = audioCodecComboBox.getSelectionModel().getSelectedItem();
+        String audioBitrate = bitrateAudioComboBox.getSelectionModel().getSelectedItem();
+        String container = containerComboBox.getSelectionModel().getSelectedItem();
+        String additionalArguments = additionalArgumentsTextField.getText();
+        String suffix = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 5);
+        String filename = file.getTitle().replaceAll("\\.\\w+", "") + "_" + suffix + "." + container;
+        String output = Paths.get(outputDirectoryTextField.getText(), filename).toString();
+
+        return new String[]{"C:\\ffmpeg\\ffmpeg.exe", "-progress", "-", "-nostats", "-i", file.getFilepath(), changeResolution ? "-vf" : "", changeResolution ? filters : "", "-c:v", "libx264", "-preset", preset, "-g", keyframes, "-keyint_min", keyframes, "-maxrate", videoBitrate, "-bufsize", videoBitrate, "-r", framerate, "-c:a", audioCodec, "-b:a", audioBitrate, additionalArguments, output};
+    }
+
+    private void onStartConversion() {
+        menuBar.setDisable(true);
+        inProgress.setVisible(true);
+        convertButton.setText("In progress...");
+        convertButton.setDisable(true);
+    }
+
+    private void onFinishedConversion() {
+        if (!convertQueue.isEmpty()) {
+            runConversionProcess(convertQueue.poll());
+        } else {
+            menuBar.setDisable(false);
+            inProgress.setVisible(false);
+            convertButton.setText("Convert Files");
+            convertButton.setDisable(false);
+        }
+    }
+
+    @FXML
+    public void onSelectFFMPEG() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Select FFmpeg file");
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("FFmpeg", "ffmpeg.exe", "ffmpeg");
+        chooser.getExtensionFilters().add(extFilter);
+        File file = chooser.showOpenDialog(new Stage());
+        ffmpegTextField.setText(file.getAbsolutePath());
+    }
+
+    @FXML
+    public void onSelectFFPROBE() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Select FFprobe file");
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("FFprobe", "ffprobe.exe", "ffprobe");
+        chooser.getExtensionFilters().add(extFilter);
+        File file = chooser.showOpenDialog(new Stage());
+        ffprobeTextField.setText(file.getAbsolutePath());
     }
 }

@@ -1,29 +1,31 @@
 package org.converter;
 
-import java.io.IOException;
-import java.util.Arrays;
+import javafx.concurrent.Task;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
-public class Command implements Runnable  {
+public class Command extends Task<String> {
     private String[] cmd;
-    private boolean finished = false;
 
     public Command(String[] command) {
         cmd = command;
     }
 
-    @Override
-    public void run() {
-        System.out.println(Arrays.toString(cmd));
-        try {
-            finished = false;
-            Runtime.getRuntime().exec(cmd);
-            finished = true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+    @Override protected String call() throws Exception {
+        Process process = Runtime.getRuntime().exec(cmd);
 
-    public boolean isFinished() {
-        return finished;
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line = null;
+        String output = "";
+        while ((line = reader.readLine()) != null) {
+            System.out.println(line);
+            if (line.contains("progress=end")) return output;
+            output += line;
+        }
+
+        process.waitFor();
+        reader.close();
+        process.destroyForcibly();
+        return output;
     }
 }

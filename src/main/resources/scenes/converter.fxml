@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Accordion?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Hyperlink?>
@@ -8,6 +9,7 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
@@ -22,7 +24,7 @@
 
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="480.0" prefWidth="854.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.converter.controller.Converter">
    <top>
-      <MenuBar BorderPane.alignment="CENTER">
+      <MenuBar fx:id="menuBar" BorderPane.alignment="CENTER">
         <menus>
           <Menu mnemonicParsing="false" text="File">
                <items>
@@ -79,11 +81,24 @@
                                                 <TextField fx:id="outputDirectoryTextField" promptText="Output directory" text="C:/" GridPane.columnSpan="2" GridPane.rowIndex="1" />
                                                 <Hyperlink onAction="#onSelectOutputDirectory" text="Select" textAlignment="RIGHT" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.hgrow="ALWAYS" GridPane.valignment="CENTER" GridPane.vgrow="ALWAYS" />
                                                 <Label text="Additional arguments" GridPane.rowIndex="2" />
-                                                <TextField promptText="Optional" GridPane.columnSpan="2" GridPane.rowIndex="3" />
+                                                <TextField fx:id="additionalArgumentsTextField" promptText="Optional" GridPane.columnSpan="2" GridPane.rowIndex="3" />
                                                 <Label text="Preset" GridPane.rowIndex="4" />
                                                 <ComboBox fx:id="qualityComboBox" maxWidth="1.7976931348623157E308" prefWidth="150.0" promptText="Medium Quality" GridPane.columnSpan="2" GridPane.rowIndex="5" />
                                                 <Label layoutX="10.0" layoutY="137.0" text="Media Container" GridPane.rowIndex="6" />
                                                 <ComboBox fx:id="containerComboBox" layoutX="10.0" layoutY="163.0" maxWidth="1.7976931348623157E308" prefWidth="150.0" promptText="mp4" GridPane.columnSpan="2" GridPane.rowIndex="7" />
+                                             </children>
+                                          </GridPane>
+                                          <GridPane>
+                                            <columnConstraints>
+                                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                            </columnConstraints>
+                                            <rowConstraints>
+                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                            </rowConstraints>
+                                             <children>
+                                                <ProgressIndicator fx:id="inProgress" visible="false" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
+                                                <Button fx:id="convertButton" mnemonicParsing="false" onAction="#onConvert" text="Convert Files" GridPane.halignment="CENTER" />
                                              </children>
                                           </GridPane>
                                        </children>
@@ -98,7 +113,7 @@
                                  <children>
                                     <VBox layoutX="14.0" layoutY="26.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                        <children>
-                                          <CheckBox fx:id="keepOriginalResolutionCheckBox" mnemonicParsing="false" text="Keep original resolution" />
+                                          <CheckBox fx:id="keepOriginalResolutionCheckBox" mnemonicParsing="false" selected="true" text="Keep original resolution" />
                                           <GridPane>
                                              <columnConstraints>
                                                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="40.0" />
@@ -111,9 +126,9 @@
                                              </rowConstraints>
                                              <children>
                                                 <Label text="Resolution" GridPane.columnSpan="3" />
-                                                <TextField fx:id="resolutionWidthTextField" promptText="Width" GridPane.rowIndex="1" />
+                                                <TextField fx:id="resolutionWidthTextField" disable="true" promptText="Width" GridPane.rowIndex="1" />
                                                 <Label text="x" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
-                                                <TextField fx:id="resolutionHeightTextField" promptText="Height" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                                                <TextField fx:id="resolutionHeightTextField" disable="true" promptText="Height" GridPane.columnIndex="2" GridPane.rowIndex="1" />
                                              </children>
                                           </GridPane>
                                           <GridPane>
@@ -181,6 +196,38 @@
                                                 <Label text="Bitrate Audio" GridPane.rowIndex="2" />
                                                 <ComboBox fx:id="bitrateAudioComboBox" maxWidth="1.7976931348623157E308" prefWidth="150.0" promptText="15000" GridPane.columnSpan="2" GridPane.rowIndex="3" />
                                                 <ComboBox fx:id="audioCodecComboBox" maxWidth="1.7976931348623157E308" prefWidth="150.0" promptText="AAC" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+                                             </children>
+                                          </GridPane>
+                                       </children>
+                                    </VBox>
+                                 </children>
+                              </AnchorPane>
+                           </content>
+                        </TitledPane>
+                        <TitledPane animated="false" layoutX="10.0" layoutY="60.0" text="FFMPEG Settings">
+                           <content>
+                              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                 <children>
+                                    <VBox layoutX="14.0" layoutY="26.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                       <children>
+                                          <GridPane>
+                                             <columnConstraints>
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="70.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                             </columnConstraints>
+                                             <rowConstraints>
+                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                             </rowConstraints>
+                                             <children>
+                                                <Label text="FFMPEG File" />
+                                                <TextField fx:id="ffmpegTextField" promptText="ffmpeg file location" text="C:\ffmpeg\ffmpeg.exe" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+                                                <Hyperlink onAction="#onSelectFFMPEG" text="Select" textAlignment="RIGHT" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.hgrow="ALWAYS" GridPane.valignment="CENTER" GridPane.vgrow="ALWAYS" />
+                                                <Label text="FFPROBE File" GridPane.rowIndex="2" />
+                                                <TextField fx:id="ffprobeTextField" promptText="ffprobe file location" text="C:\ffmpeg\ffprobe.exe" GridPane.columnSpan="2" GridPane.rowIndex="3" />
+                                                <Hyperlink onAction="#onSelectFFPROBE" text="Select" textAlignment="RIGHT" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
                                              </children>
                                           </GridPane>
                                        </children>
